@@ -28,7 +28,7 @@ namespace AdventOfCode2015
             }
             else
             {
-                Console.WriteLine("Sorry Santa, you've got bad directions.");
+                Console.WriteLine("Sorry Santa, you've got bad directions. Just leave those presents for me.");
             }
 
             Console.Read();
