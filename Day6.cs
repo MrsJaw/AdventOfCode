@@ -23,7 +23,7 @@ namespace Day6
             Console.Write("Give me the location of the lighting instructions.  ");
             FilePath = Console.ReadLine();
 
-            //Count Floors
+            //Start spreading christmas cheer
             if (!string.IsNullOrWhiteSpace(FilePath))
             {
                 Result = SetUpLights(FilePath);
