@@ -28,13 +28,6 @@ namespace Day6
             {
                 Result = SetUpLights(FilePath);
                 Console.WriteLine(Result + " lights are on.");
-                Console.WriteLine("Would you like to see the design? (Y/N) ");
-                char GetDesignResponse = Convert.ToChar(Console.Read());
-                if(GetDesignResponse == 'Y' || GetDesignResponse == 'y')
-                {
-                    LightItUp(FilePath);
-                    Console.WriteLine("The design is saved next to your instructions!");
-                }
             }
             else
             {
@@ -42,12 +35,6 @@ namespace Day6
             }
 
             Console.Read();
-        }
-
-        private static void LightItUp(string path)
-        {
-            int IndexOfLastSlash = path.LastIndexOf('/');
-            string NewPath = path.Substring(0, IndexOfLastSlash + 1) + "FinishedDisplay.txt";
         }
 
         private static int SetUpLights(string path)
@@ -67,22 +54,22 @@ namespace Day6
                         int[] Numbers = NumberStrings.Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => Convert.ToInt32(s)).ToArray(); //splits on one or more digit numbers
                         if (Numbers.Length == 4)
                         {
-                            Point CurrentLocation = new Point(Numbers[0], Numbers[1] );
-                            for(int row = Numbers[0]; row <= Numbers[2]; row ++)
+                            Point CurrentLocation = new Point(Numbers[0], Numbers[1]);
+                            for (int row = Numbers[0]; row <= Numbers[2]; row++)
                             {
                                 CurrentLocation.X = row;
-                                for(int col = Numbers[1]; col <= Numbers[3]; col ++)
+                                for (int col = Numbers[1]; col <= Numbers[3]; col++)
                                 {
                                     CurrentLocation.Y = col;
-                                    if(Instruction.StartsWith("turn off"))
+                                    if (Instruction.StartsWith("turn off"))
                                     {
                                         _LightDisplay[CurrentLocation] = false;
                                     }
-                                    else if(Instruction.StartsWith("turn on"))
+                                    else if (Instruction.StartsWith("turn on"))
                                     {
                                         _LightDisplay[CurrentLocation] = true;
                                     }
-                                    else if(Instruction.StartsWith("toggle"))
+                                    else if (Instruction.StartsWith("toggle"))
                                     {
                                         _LightDisplay[CurrentLocation] = !_LightDisplay[CurrentLocation];
                                     }
