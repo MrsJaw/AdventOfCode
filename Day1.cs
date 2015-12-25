@@ -25,6 +25,30 @@ namespace AdventOfCode2015
             {
                 Result = SantasDirections.Count(x => x.Equals('(')) - SantasDirections.Count(x => x.Equals(')'));
                 Console.WriteLine("You need to go to floor " + Result);
+
+                //Part 2
+                int floor = 0;
+                int pos = 0;
+                foreach (char step in SantasDirections)
+                {
+                    pos++;
+                    switch(step)
+                    {
+                        case '(':
+                            floor++;
+                            break;
+                        case ')':
+                            floor--;
+                            break;
+                    }
+
+                    if(floor < 0)
+                    {
+                        break;
+                    }
+                }
+
+                Console.WriteLine(string.Format("At position {0} you ended up in the basement", pos));
             }
             else
             {

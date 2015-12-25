@@ -22,10 +22,11 @@ namespace Day2
             //Calculate Gift Wrap
             if (!string.IsNullOrWhiteSpace(GiftDimensionsFilePath))
             {
-                Result = CalculateWrappingPaperFromDimensions(GiftDimensionsFilePath);
+                int RibbonResult = 0;
+                Result = CalculateWrappingPaperFromDimensions(GiftDimensionsFilePath, out RibbonResult);
                 if (Result > 0)
                 {
-                    Console.WriteLine("You need " + Result + " sq.ft. of wrapping paper.");
+                    Console.WriteLine(string.Format("You need {0} sq.ft. of wrapping paper and {1} feet of ribbon.", Result, RibbonResult));
                 }
                 else
                 {
@@ -40,9 +41,10 @@ namespace Day2
             Console.Read();
         }
 
-        private static int CalculateWrappingPaperFromDimensions(string path)
+        private static int CalculateWrappingPaperFromDimensions(string path, out int ribbonLength)
         {
             int Result = 0;
+            ribbonLength = 0;
 
             try
             {
@@ -55,13 +57,20 @@ namespace Day2
                             string[] GiftDimensions = reader.ReadLine().Split('x');
                             if(GiftDimensions.Length == 3)
                             {
-                                int Lenth = Convert.ToInt32(GiftDimensions[0]);
+                                int Length = Convert.ToInt32(GiftDimensions[0]);
                                 int Width = Convert.ToInt32(GiftDimensions[1]);
                                 int Height = Convert.ToInt32(GiftDimensions[2]);
-                                int Side1 = Lenth * Width;
-                                int Side2 = Width * Height;
-                                int Side3 = Lenth * Height;
-                                Result += (2 * Side1) + (2 * Side2) + (2 * Side3) + Math.Min(Side1, Math.Min(Side2, Side3));
+                                int AreaSide1 = Length * Width;
+                                int AreaSide2 = Width * Height;
+                                int AreaSide3 = Length * Height;
+                                Result += (2 * AreaSide1) + (2 * AreaSide2) + (2 * AreaSide3) + Math.Min(AreaSide1, Math.Min(AreaSide2, AreaSide3));
+
+                                //Part 2
+                                int PerimeterSide1 = (2 * Length) + (2 * Width);
+                                int PerimeterSide2 = (2 * Width) + (2 * Height);
+                                int PerimeterSide3 = (2 * Length) + (2 * Height);
+                                ribbonLength += Math.Min(PerimeterSide1, Math.Min(PerimeterSide2, PerimeterSide3)) + (Length * Width * Height);
+
                             }
                         }
                     }

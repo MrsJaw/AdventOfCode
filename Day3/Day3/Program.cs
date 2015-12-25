@@ -43,6 +43,7 @@ namespace Day3
         {
             int Result = 0;
             Coordinate CurrentCoordinates = new Coordinate() { X = 0, Y = 0 } ;
+            Coordinate RoboCurrentCoordinates = new Coordinate() { X = 0, Y = 0 };
             Dictionary<Coordinate, int> PresentsDeliveredByHouse = new Dictionary<Coordinate, int>();
 
             try
@@ -54,32 +55,21 @@ namespace Day3
                         char NextDirection = '0';
                         PresentsDeliveredByHouse.Add(CurrentCoordinates, 1);
 
+                        //Part 2
+                        PresentsDeliveredByHouse[RoboCurrentCoordinates]++;
+                        int NextDirectionCount = 0;
+
                         while (!reader.EndOfStream)
                         {
                             NextDirection = Convert.ToChar(reader.Read());
-                            switch(NextDirection)
+                            NextDirectionCount++;
+                            if (NextDirectionCount%2==0)
                             {
-                                case '^':
-                                    CurrentCoordinates.X++;
-                                    break;
-                                case 'v':
-                                    CurrentCoordinates.X--;
-                                    break;
-                                case '>':
-                                    CurrentCoordinates.Y++;
-                                    break;
-                                case '<':
-                                    CurrentCoordinates.Y--;
-                                    break;
-                            }
-
-                            if (!PresentsDeliveredByHouse.ContainsKey(CurrentCoordinates))
-                            {
-                                PresentsDeliveredByHouse.Add(CurrentCoordinates, 1);
+                                MoveSanta(NextDirection, ref CurrentCoordinates, ref PresentsDeliveredByHouse);
                             }
                             else
                             {
-                                PresentsDeliveredByHouse[CurrentCoordinates]++;
+                                MoveSanta(NextDirection, ref RoboCurrentCoordinates, ref PresentsDeliveredByHouse);
                             }
 
                         }
@@ -94,6 +84,34 @@ namespace Day3
             }
 
             return Result;
+        }
+
+        private static void MoveSanta(char nextDirection, ref Coordinate coordinates, ref Dictionary<Coordinate, int> presentsDeliveredByHouse)
+        {
+            switch (nextDirection)
+            {
+                case '^':
+                    coordinates.X++;
+                    break;
+                case 'v':
+                    coordinates.X--;
+                    break;
+                case '>':
+                    coordinates.Y++;
+                    break;
+                case '<':
+                    coordinates.Y--;
+                    break;
+            }
+
+            if (!presentsDeliveredByHouse.ContainsKey(coordinates))
+            {
+                presentsDeliveredByHouse.Add(coordinates, 1);
+            }
+            else
+            {
+                presentsDeliveredByHouse[coordinates]++;
+            }
         }
     }
 }
