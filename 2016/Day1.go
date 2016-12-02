@@ -20,7 +20,7 @@ func navigate(directions []string) int {
 		} else {
 			theta = (theta + 90) % 360
 		}
-		step, err := strconv.Atoi(v[1:])
+		step, err := strconv.Atoi(strings.TrimSpace(v[1:]))
 		if err == nil {
 			switch theta {
 			case 0:
