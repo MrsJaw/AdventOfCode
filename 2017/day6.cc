@@ -39,8 +39,9 @@ bool VectorsEqual(vector<int> *comparand1, vector<int> *comparand2){
 bool PatternExists(vector<int> *testvector, vector<vector<int>> *patterns){
     bool matchFound = false;
     int i = 0;
+    int patternCount = patterns->size();
     
-    while(!matchFound && i < patterns->size()){
+    while(!matchFound && i < patternCount){
         matchFound = VectorsEqual(testvector, &((*patterns)[i++]));
     }
     
@@ -51,6 +52,9 @@ bool PatternExists(vector<int> *testvector, vector<vector<int>> *patterns){
             newPattern.push_back((*testvector)[i]);
         }
         patterns->push_back(newPattern);
+    }
+    else{
+        cout << "Part 2: " << patternCount - (--i) << endl;
     }
     
     return matchFound;
