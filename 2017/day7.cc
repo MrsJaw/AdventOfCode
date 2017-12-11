@@ -3,6 +3,8 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <map>
+#include <iterator>
 
 using namespace std;
 
@@ -31,19 +33,66 @@ programNode getProgramFromString(string line){
     return result;
 }
 
-bool hasParent(string p, vector<programNode>& programStack){
+bool hasParent(string p, map<string, programNode>& programStack){
     bool result = false;
-    int i = 0;
-    int programCount = programStack.size();
-     while(!result && i < programCount)
+    map<string, programNode>::iterator it;
+    for ( it = programStack.begin(); it != programStack.end() && !result; it++ )
     {
-        int childCount = programStack[i].children.size();
+        int childCount = (it->second).children.size();
         int j = 0;
         while(!result && j < childCount){
-            result = p.compare(programStack[i].children[j++]) == 0;
+            result = p.compare( (it->second).children[j++]) == 0;
         }
-        i++;
     }
+    return result;
+}
+
+int getTotalWeight(programNode& p, map<string, programNode>& programStack){
+    int result = p.weight;
+    int childCount = p.children.size();
+    if(childCount > 0 ){
+        int i = 0;
+        while(i < childCount){
+            result += getTotalWeight(programStack[p.children[i++]], programStack);
+        }
+    }
+    return result;
+}
+
+
+bool isBalanced(programNode& p, map<string, programNode>& programStack){
+    bool result = true;
+    int childCount = p.children.size();
+    if(childCount > 0){
+        map <int, vector<programNode>> childrenByWeight; 
+        int totalWeight = 0;
+        bool childrenBalanced = true;
+        for(int i = 0; i < childCount && childrenBalanced; i++){
+            childrenBalanced &= isBalanced(programStack[p.children[i]], programStack);
+            totalWeight = getTotalWeight(programStack[p.children[i]], programStack);
+            childrenByWeight[totalWeight].push_back(programStack[p.children[i]]);
+        }
+        if(childrenByWeight.size() > 1){
+            result = false;
+            if(childrenBalanced){
+                int desiredWeight = 0;
+                int wrongWeight = 0;
+                programNode problemNode;
+                map<int, vector<programNode>>::iterator it;
+                for ( it = childrenByWeight.begin(); it != childrenByWeight.end(); it++ ){
+                    if((it->second).size() == 1){
+                        problemNode = (it->second)[0];
+                        wrongWeight = (it->first);
+                    }else{
+                        desiredWeight = (it->first);
+                    }
+                }
+                cout << "Part 2: " << problemNode.weight + (desiredWeight - wrongWeight) << endl;
+            }
+        }
+        childrenByWeight.clear();
+    }
+    
     return result;
 }
 
@@ -51,20 +100,31 @@ int main() {
     //get input
     ifstream in("Input.txt");
     string line;
-    vector<programNode> programStack;
+    map<string, programNode> programStack;
     while(getline(in, line)){
-        programStack.push_back(getProgramFromString(line));
+        programNode p = getProgramFromString(line);
+        programStack[p.name] = p;
     }
     
+    //part 1
     bool baseFound;
     int programCount = programStack.size();
     string baseProgram;
-    for(int i = 0; i < programCount && !baseFound; i++){
-        baseProgram=programStack[i].name;
+    map<string, programNode>::iterator it;
+    for ( it = programStack.begin(); it != programStack.end() && !baseFound; it++ )
+    {
+        baseProgram = it->first,
         baseFound = !hasParent(baseProgram, programStack);
     }
     
-    cout << baseProgram << endl;
+    cout << "Part 1: " << baseProgram << endl;
+    
+    //part 2
+    bool balanced;
+    for ( it = programStack.begin(); it != programStack.end() && balanced; it++ )
+    {
+        balanced = isBalanced(it->second, programStack);
+    }
     
     return 0;
 }   
