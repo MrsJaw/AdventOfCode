@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-namespace AoCDay5
+namespace Day5
 {
     class Program
     {
@@ -24,14 +22,79 @@ namespace AoCDay5
             if (!string.IsNullOrWhiteSpace(FilePath))
             {
                 Result = MoralJudgementOfText(FilePath);
-                Console.WriteLine("There are " + Result + " nice strings");
+                Console.WriteLine($"There are {Result} nice strings in the old way of thinking, but that was clearly ridiculous.");
+                Result = EnlightenedMoralJudgementOfText(FilePath);
+                Console.WriteLine($"Now we know better and there are {Result} nice strings.");
             }
             else
             {
                 Console.WriteLine("The list itself is naughty so.....there's nothing to see here.");
             }
 
+            Console.Write("Press any key to exit.");
             Console.Read();
+        }
+
+        
+        private static int EnlightenedMoralJudgementOfText(string path)
+        {
+            int Result = 0;
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    using (StreamReader reader = new StreamReader(path))
+                    {
+                        string StringForJudgement = string.Empty;
+                        while(!reader.EndOfStream)
+                        {
+                            StringForJudgement = reader.ReadLine();
+
+                            /* Conditions for Niceness *
+                             It contains a pair of any two letters that appears at least twice in the string 
+                             without overlapping
+                             It contains at least one letter which repeats with exactly one letter between them
+                            */
+                            bool Nice = false;
+                            bool TheCouplesNoTouchyFactor = false;
+                            bool TheSandwichFactor = false;
+
+                            if(StringForJudgement.Length > 3)
+                            {
+                                for(int i = 0; i < StringForJudgement.Length-2 && !Nice; i++)
+                                {
+                                    TheSandwichFactor = TheSandwichFactor || (StringForJudgement[i] == StringForJudgement[i+2]);
+
+                                    if(!TheCouplesNoTouchyFactor)
+                                    {
+                                        string CharPair = StringForJudgement.Substring(i, 2);
+                                        string RemainingStringToCompare = StringForJudgement.Substring(i+2);
+                                        TheCouplesNoTouchyFactor = RemainingStringToCompare.Contains(CharPair);
+                                    }
+                                    
+                                    Nice = (TheSandwichFactor && TheCouplesNoTouchyFactor);
+                                }
+                            }
+
+                            if(Nice)
+                            {
+                                Result ++;
+                            }
+
+                            //Output for testing
+                            //Console.WriteLine($"{StringForJudgement}: NoTouchy? {TheCouplesNoTouchyFactor} Sandwich? {TheSandwichFactor} Nice? {Nice}");
+
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                //whomst among us can truly claim to be good?
+            }
+
+            return Result;
         }
 
         private static int MoralJudgementOfText(string path)
