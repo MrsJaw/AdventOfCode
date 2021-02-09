@@ -2,17 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using System.Linq;
 
-namespace Day6
+namespace day6
 {
     class Program
     {
 
         private static Dictionary<Point, bool> _LightDisplay = new Dictionary<Point, bool>();
+        private static Dictionary<Point, int> _BrighterLightDisplay = new Dictionary<Point, int>();
       
 
         static void Main(string[] args)
@@ -28,12 +28,15 @@ namespace Day6
             {
                 Result = SetUpLights(FilePath);
                 Console.WriteLine(Result + " lights are on.");
+                Console.WriteLine("Son of a nutcracker I read that wrong!");
+                Console.WriteLine("Recalibrating by cheer intensity...");
+                Console.WriteLine($"Total Brightness is now {_BrighterLightDisplay.Values.Sum()}");
             }
             else
             {
                 Console.WriteLine("The grinch stole your lights display...AND the roast beast.");
             }
-
+            Console.WriteLine("Press any key to quit.");
             Console.Read();
         }
 
@@ -64,14 +67,20 @@ namespace Day6
                                     if (Instruction.StartsWith("turn off"))
                                     {
                                         _LightDisplay[CurrentLocation] = false;
+                                        if(_BrighterLightDisplay[CurrentLocation] > 0)
+                                        {
+                                            _BrighterLightDisplay[CurrentLocation]--;
+                                        }
                                     }
                                     else if (Instruction.StartsWith("turn on"))
                                     {
                                         _LightDisplay[CurrentLocation] = true;
+                                        _BrighterLightDisplay[CurrentLocation]++;
                                     }
                                     else if (Instruction.StartsWith("toggle"))
                                     {
                                         _LightDisplay[CurrentLocation] = !_LightDisplay[CurrentLocation];
+                                        _BrighterLightDisplay[CurrentLocation]+=2;
                                     }
                                 }
                             }
@@ -98,9 +107,11 @@ namespace Day6
                 {
                     Point light = new Point(row, col);
                     _LightDisplay.Add(light, false);
+                    _BrighterLightDisplay.Add(light, 0);
                 }
             }
         }
     }
 }
+
 
