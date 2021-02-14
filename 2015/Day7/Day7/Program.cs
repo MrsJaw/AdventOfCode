@@ -46,27 +46,33 @@ namespace Day7
             FilePath = Console.ReadLine();
 
             //Construct Circuit
-            if (!string.IsNullOrWhiteSpace(FilePath))
+            try
             {
-                ConstructCircuit(FilePath);
-                Console.WriteLine("Wire Signals");
-                Console.WriteLine("-----------------");
-                foreach (string wire in _Circuit.Keys)
-                {
-                    Console.WriteLine(wire + ": " + _Circuit[wire].ToString());
-                }
+                List<Instruction> CircuitInstructions = ConstructCircuit(FilePath);                
+                LetErRip(CircuitInstructions);
+                WriteResults();
+
+                Console.WriteLine("Let's go another round!");
+                UInt16 aValue = _Circuit["a"];
+                _Circuit = new SortedDictionary<string, UInt16>();
+                Dictionary<string, Instruction> InstructionsByRecipient = CircuitInstructions.ToDictionary(i => i.Recipient);
+                InstructionsByRecipient["b"] = CreateCircuitInstruction($"{aValue} -> b");
+                LetErRip(InstructionsByRecipient.Values.ToList());
+                WriteResults();
             }
-            else
-            {
-                Console.WriteLine("Sorry Bobby, you've got bad directions.");
+            catch (System.Exception ex)
+            {                
+                Console.WriteLine("Sorry Bobby, you've got bad directions."); 
+                Console.WriteLine(ex.Message);               
             }
 
+            Console.WriteLine("Press any key to exit.");
             Console.Read();
         }
         #endregion Main
 
         #region ConstructCircuit
-        private static void ConstructCircuit(string filePath)
+        private static List<Instruction> ConstructCircuit(string filePath)
         {
             List<Instruction> UncompletedInstructions = new List<Instruction>();
 
@@ -81,19 +87,7 @@ namespace Day7
                 }
             }
             
-            //Perform Instructions
-            while(UncompletedInstructions.Count > 0)
-            {
-                for(int i = 0; i < UncompletedInstructions.Count; i ++)
-                {
-                    Instruction NextInstruction = UncompletedInstructions[i];
-                    if(CompleteCircuitInstruction(NextInstruction))
-                    {
-                        UncompletedInstructions.Remove(NextInstruction);
-                        i--;
-                    }
-                }
-            }
+            return UncompletedInstructions;
         }
         #endregion ConstructCircuit
 
@@ -134,6 +128,29 @@ namespace Day7
             return Result;
         }
         #endregion CreateCircuitInstruction
+
+        #region LetErRip
+        public static void LetErRip(List<Instruction> instructions)
+        {
+            List<Instruction> InstructionsToComplete = instructions.Select(i => new Instruction(){Operation = i.Operation,
+                                                                                                  Operands = i.Operands.Select(o => o).ToArray(),
+                                                                                                  Recipient = i.Recipient,
+                                                                                                  OriginalLine = i.OriginalLine}).ToList();
+            //Perform Instructions
+            while(InstructionsToComplete.Count > 0)
+            {
+                for(int i = 0; i < InstructionsToComplete.Count; i ++)
+                {
+                    Instruction NextInstruction = InstructionsToComplete[i];
+                    if(CompleteCircuitInstruction(NextInstruction))
+                    {
+                        InstructionsToComplete.Remove(NextInstruction);
+                        i--;
+                    }
+                }
+            }
+        }
+        #endregion LetErRip
 
         #region CompleteCircuitInstruction
         public static bool CompleteCircuitInstruction(Instruction instruction)
@@ -189,8 +206,9 @@ namespace Day7
                 }
 
                 _Circuit[instruction.Recipient] = Value;
+                
             }
-
+            
             return InstructionCanBeCompleted;
 
         }
@@ -203,6 +221,17 @@ namespace Day7
         }
         #endregion SplitString
 
+        #region WriteResults
+        public static void WriteResults()
+        {
+            Console.WriteLine("Wire Signals");
+            Console.WriteLine("-----------------");
+            foreach (string wire in _Circuit.Keys)
+            {
+                Console.WriteLine(wire + ": " + _Circuit[wire].ToString());
+            }    
+        }
+        #endregion WriteResults
     }
 }
 
