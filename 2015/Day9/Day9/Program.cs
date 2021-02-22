@@ -20,6 +20,8 @@ namespace Day9
         #region Member Variables
         public static List<LineSegment> _Map = new List<LineSegment>();
         private static List<string> _Cities = new List<string>();
+        private static int _LongestRouteDistance = -1;
+        private static int _ShortestRouteDistance = -1;
 
         public static List<string> Cities
         {
@@ -38,73 +40,160 @@ namespace Day9
         #region Main
         static void Main(string[] args)
         {
-            int Result = -1;
             string FilePath = string.Empty;
 
             Console.Write("Merry Christmas, Santa! What's the file path for your map?  ");
             FilePath = Console.ReadLine();
 
-            if (!string.IsNullOrWhiteSpace(FilePath))
+            try
             {
                 BuildMap(FilePath);
-                Result = GetShortestRouteDistance();
+                List<LineSegment> Route = GetSantasRoute();
+                Console.WriteLine(string.Format("The shortest distance you'll need to travel is {0} unspecified units.", _ShortestRouteDistance));
+                Route = GetSantasScenicRoute();
+                Console.WriteLine(string.Format("The longest distance you can travel is {0} unspecified units.", _LongestRouteDistance));
             }
-
-            if (Result > 0)
+            catch(Exception ex)
             {
-                Console.WriteLine(string.Format("The shortest distance you'll need to travel is {0} unspecified units.", Result));
+                Console.WriteLine("Who gave you these directions?");
+                Console.WriteLine(ex.Message);
             }
 
+            Console.WriteLine("Press any key to exit");
             Console.Read();
         }
         #endregion Main
 
-        #region GetShortestRouteDistance
-        private static int GetShortestRouteDistance()
+        #region AddNextStop
+        private static void AddNextStop(ref List<LineSegment> route, ref List<LineSegment> map, bool useScenicCalculation)
         {
-            int Result = -1;
-            foreach (string city in Cities)
+            string StartingCity = route.FirstOrDefault().Points.FirstOrDefault();
+            string CurrentCity = route.LastOrDefault().Points.LastOrDefault();
+            string[] TakenCities = route.SelectMany(s => s.Points).Distinct().ToArray();
+            IEnumerable<LineSegment> PossibleNextStops = map.Where(x => IsValidNextStop(x, CurrentCity, TakenCities)); //and other point isn't already in the map.             
+           
+            if(PossibleNextStops.Count() > 0)
             {
-                LineSegment[] PossibleStartingLines = _Map.Where(x => x.Points.Contains(city)).ToArray();
-                foreach (LineSegment line in PossibleStartingLines)
+                LineSegment NextStop = new LineSegment();
+                if(useScenicCalculation)
                 {
-                    List<string> Route = new List<string>() { line.Points[0], line.Points[1] };
-                    string CurrentStop = city;
-                    string NextStop = line.Points.Where(x => !x.Equals(city)).FirstOrDefault();
-                    int RouteDistance = line.Distance;
-                    int CityCount = Cities.Count();
-
-                    while (Route.Count < CityCount)
-                    {
-                        LineSegment[] PossibleNextStops = _Map.Where(x => x.Points.Contains(NextStop) && !x.Points.Contains(CurrentStop)).ToArray();
-
-                        if (PossibleNextStops.Count() == 1)
-                        {
-                            CurrentStop = NextStop;
-                            NextStop = PossibleNextStops[0].Points.Where(x => !x.Equals(CurrentStop)).FirstOrDefault();
-                            if (!Route.Contains(NextStop))
-                            {
-                                Route.Add(NextStop);
-                                RouteDistance += PossibleNextStops[0].Distance;
-                            }
-                        }
-                        else
-                        {
-                            var test = "crap.";
-                        }
-                    }
-
-                    if (Result < 0 || RouteDistance < Result)
-                    {
-                        Result = RouteDistance;
-                    }
+                    NextStop = PossibleNextStops.OrderByDescending(c => c.Distance).FirstOrDefault();
                 }
+                else
+                {
+                    NextStop = PossibleNextStops.OrderBy(c => c.Distance).FirstOrDefault();
+                }
+                string NextCity = NextStop.Points.Where(c => !c.Equals(CurrentCity)).FirstOrDefault();
+                route.Add(new LineSegment()
+                                    {
+                                        Points =  new string[] {CurrentCity, NextCity},
+                                        Distance = NextStop.Distance
+                                    }); 
+                map.Remove(NextStop);
+            }
+        }
+        #endregion AddNextStop
+
+        #region CloneMap
+        private static List<LineSegment> CloneMap(List<LineSegment> map)
+        {
+            List<LineSegment> Result = new List<LineSegment>();
+            foreach(LineSegment l in map)
+            {
+                Result.Add(new LineSegment()
+                                    {
+                                        Points =  new string[] {l.Points[0], l.Points[1]},
+                                        Distance = l.Distance
+                                    });
             }
             return Result;
-
         }
-        #endregion GetShortestRouteDistance
+        #endregion CloneMap
+
+        #region GetSantasRoute
+        private static List<LineSegment> GetSantasRoute()
+        {
+            List<LineSegment> Result = new List<LineSegment>();
+
+            foreach(LineSegment firstStop in _Map)
+            {
+                List<LineSegment> Map = CloneMap(_Map);
+                List<LineSegment> Route = new List<LineSegment>();
+                Route.Add(firstStop);
+                Map.Remove(firstStop);
+                GetRoute(ref Route, ref Map, Cities.Count());
+
+                if(_ShortestRouteDistance < 0 || Route.Sum(x => x.Distance) < _ShortestRouteDistance)
+                {
+                    Result = Route;
+                    _ShortestRouteDistance = Result.Sum(x => x.Distance);
+                }
+            }
+
+            return Result;
+        }
+        #endregion GetSantasRoute
+
+        #region GetSantasScenicRoute
+        private static List<LineSegment> GetSantasScenicRoute()
+        {
+            List<LineSegment> Result = new List<LineSegment>();
+
+            foreach(LineSegment firstStop in _Map)
+            {
+                List<LineSegment> Map = CloneMap(_Map);
+                List<LineSegment> Route = new List<LineSegment>();
+                Route.Add(firstStop);
+                Map.Remove(firstStop);
+                GetRoute(ref Route, ref Map, Cities.Count());
+
+                if(_LongestRouteDistance < 0 || _LongestRouteDistance < Route.Sum(x => x.Distance) )
+                {
+                    Result = Route;
+                    _LongestRouteDistance = Result.Sum(x => x.Distance);
+                }
+            }
+
+            return Result;
+        }
+        #endregion GetSantasScenicRoute
+
+        #region GetRoute
+        private static void GetRoute(ref List<LineSegment> route, ref List<LineSegment> map, int numberOfStops, bool isScenic = false)
+        {
+            int LastStopNumber = numberOfStops-1;
+            if(route.Count < numberOfStops)
+            {
+                //add a stop
+                GetRoute(ref route, ref map, LastStopNumber, isScenic);
+            }
+            
+            AddNextStop(ref route, ref map, isScenic);            
+            
+        }
+        #endregion GetRoute
         
+        #region IsValidNextStop
+        private static bool IsValidNextStop(LineSegment stop, string currentCity, string[] takenCities)
+        {
+            bool HasCurrentCity = false;
+            bool NoOtherTakenCities = true;
+
+            foreach(string city in stop.Points)
+            {
+                if(city.Equals(currentCity))
+                {
+                    HasCurrentCity = true;
+                }
+                else if(takenCities.Contains(city))
+                {
+                    NoOtherTakenCities = false;
+                }
+            }
+            
+            return HasCurrentCity && NoOtherTakenCities;
+        }
+        #endregion IsValidNextStop
 
         #region BuildMap
         private static void BuildMap(string filePath)
