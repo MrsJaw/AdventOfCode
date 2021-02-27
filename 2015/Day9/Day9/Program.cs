@@ -50,7 +50,7 @@ namespace Day9
                 BuildMap(FilePath);
                 List<LineSegment> Route = GetSantasRoute();
                 Console.WriteLine(string.Format("The shortest distance you'll need to travel is {0} unspecified units.", _ShortestRouteDistance));
-                Route = GetSantasScenicRoute();
+                GetSantasScenicRoute();
                 Console.WriteLine(string.Format("The longest distance you can travel is {0} unspecified units.", _LongestRouteDistance));
             }
             catch(Exception ex)
@@ -110,6 +110,22 @@ namespace Day9
         }
         #endregion CloneMap
 
+        #region GetMostScenicRouteFromStartingPoint
+        private static int GetMostScenicRouteFromStartingPoint(LineSegment firstStop)
+        {
+            List<LineSegment> Map = CloneMap(_Map);
+            List<LineSegment> Route = new List<LineSegment>();
+            Route.Add(firstStop);
+            if(!Map.Remove(firstStop))
+            {
+                LineSegment ReverseNextStop = new LineSegment() {Points = new string[]{firstStop.Points[1], firstStop.Points[0]}, Distance = firstStop.Distance};
+                Map.Remove(ReverseNextStop);                
+            }
+            GetRoute(ref Route, ref Map, Cities.Count(), true);
+            return Route.Sum(x => x.Distance);
+        }
+        #endregion GetMostScenicRouteFromStartingPoint
+
         #region GetSantasRoute
         private static List<LineSegment> GetSantasRoute()
         {
@@ -135,27 +151,18 @@ namespace Day9
         #endregion GetSantasRoute
 
         #region GetSantasScenicRoute
-        private static List<LineSegment> GetSantasScenicRoute()
+        private static void GetSantasScenicRoute()
         {
-            List<LineSegment> Result = new List<LineSegment>();
-
             foreach(LineSegment firstStop in _Map)
             {
-                List<LineSegment> Map = CloneMap(_Map);
-                List<LineSegment> Route = new List<LineSegment>();
-                Route.Add(firstStop);
-                Map.Remove(firstStop);
-                GetRoute(ref Route, ref Map, Cities.Count());
+                int Distance = GetMostScenicRouteFromStartingPoint(firstStop);
+                _LongestRouteDistance = Math.Max(_LongestRouteDistance, Distance);
 
-                if(_LongestRouteDistance < 0 || _LongestRouteDistance < Route.Sum(x => x.Distance) )
-                {
-                    Result = Route;
-                    _LongestRouteDistance = Result.Sum(x => x.Distance);
-                }
+                LineSegment ReverseFirstStop = new LineSegment() {Points = new string[]{firstStop.Points[1], firstStop.Points[0]}, Distance = firstStop.Distance};
+                int DistanceGoingTheOtherWay = GetMostScenicRouteFromStartingPoint(ReverseFirstStop);
+                _LongestRouteDistance = Math.Max(_LongestRouteDistance, DistanceGoingTheOtherWay);
             }
-
-            return Result;
-        }
+        }        
         #endregion GetSantasScenicRoute
 
         #region GetRoute
