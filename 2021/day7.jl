@@ -10,4 +10,13 @@ function star1()
     return findmin(⛽)
 end
 
+function star2()
+    ⛽= zeros(BigInt, maximum(🦀))
+    for i in  minimum(🦀) : maximum(🦀)
+        ⛽[i] = sum([sum(1:j) for j in abs.(🦀.-i)])
+    end    
+    return findmin(⛽)
+end
+
 println(star1())
+println(star2())
