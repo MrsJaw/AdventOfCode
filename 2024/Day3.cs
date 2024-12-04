@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Day2;
+namespace Day3;
 
 class Program
 {
